@@ -1,4 +1,4 @@
-const { ENTRY_TYPES, EMPTY_ENTRIES, NAV_ITEMS, PERSONAS, SUBTABS } = require('../../core/constants');
+const { CATEGORY_COLORS, ENTRY_TYPES, EMPTY_ENTRIES, NAV_ITEMS, PERSONAS, SUBTABS } = require('../../core/constants');
 const { buildEntryCard, flattenEntries, getEntrySubtype, matchStatusFilter } = require('../../core/entry-view-models');
 const { getDaysSince } = require('../../core/date-utils');
 const { buildReportSummary } = require('../../core/report-rules');
@@ -35,6 +35,9 @@ Page({
     report: {},
     reportText: '',
     reportTitle: '这个月，生活被好好收起来了',
+    flashId: '',
+    pieSections: [],
+    pieGradient: '',
     reportVisible: false,
     status: 'all',
     statusCount: { urgent: 0, todo: 0, recent: 0 },
@@ -134,7 +137,8 @@ Page({
   async submitText() {
     const rawText = this.data.inputText.trim();
     if (!rawText || this.data.loading) return;
-    this.setData({ loading: true, aiReply: '本地规则快速收纳中...', replyLabel: '🪄 归档中' });
+    this.setData({ loading: true });
+    this.showAiReply('🪄 归档中', '本地规则快速收纳中...', 1000);
 
     try {
       const result = await createEntry(rawText, this.data.persona);
@@ -416,8 +420,13 @@ Page({
 
   stopTap() {},
 
-  showAiReply(replyLabel, aiReply) {
+  showAiReply(replyLabel, aiReply, duration = 1800) {
+    if (this.aiReplyTimer) clearTimeout(this.aiReplyTimer);
     this.setData({ replyLabel, aiReply });
+    this.aiReplyTimer = setTimeout(() => {
+      this.setData({ replyLabel: 'AI', aiReply: '' });
+      this.aiReplyTimer = null;
+    }, duration);
   },
 
   showToast(title) {

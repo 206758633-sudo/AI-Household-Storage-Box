@@ -272,17 +272,19 @@
 .ai_reply {
   position: absolute;
   right: 28rpx;
-  bottom: 134rpx;
+  bottom: 250rpx;
   left: 28rpx;
   display: none;
   align-items: center;
   gap: 18rpx;
-  padding: 18rpx 24rpx;
+  min-height: 72rpx;
+  padding: 14rpx 24rpx;
   border-radius: 26rpx;
   background: #111114;
   color: #fff;
   font-size: 26rpx;
   z-index: 40;
+  box-shadow: 0 8rpx 24rpx rgba(20, 20, 28, 0.18);
 }
 
 .ai_reply.show {
