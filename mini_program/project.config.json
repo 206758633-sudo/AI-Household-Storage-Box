@@ -1,0 +1,14 @@
+{
+  "appid": "touristappid",
+  "projectname": "AI-Household-Storage-Box",
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloud_functions/",
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "enhance": true
+  },
+  "compileType": "miniprogram"
+}
+

@@ -1,0 +1,179 @@
+<view class="page">
+  <view class="nav_bar">
+    <view class="nav_left" bindtap="openDrawer">
+      <text class="menu_icon">☰</text>
+      <text class="title">{{currentIcon}} AI生活收纳盒</text>
+    </view>
+    <view class="capsule">
+      <text>•••</text>
+      <view class="divider"></view>
+      <text>◎</text>
+    </view>
+  </view>
+
+  <scroll-view class="tabs" scroll-x wx:if="{{tabs.length}}">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="*this"
+      class="tab {{item === sub ? 'active' : ''}}"
+      data-sub="{{item}}"
+      bindtap="selectSub"
+    >{{item}}</view>
+  </scroll-view>
+
+  <scroll-view class="content" scroll-y>
+    <view class="category_title">{{categoryTitle}}</view>
+
+    <view class="overview" wx:if="{{category === 'all'}}">
+      <view class="overview_head">
+        <text>收纳概览</text>
+        <text wx:if="{{status !== 'all'}}" bindtap="clearStatus">显示全部 ×</text>
+      </view>
+      <view class="overview_stats">
+        <view class="overview_item {{status === 'urgent' ? 'active' : ''}}" data-status="urgent" bindtap="selectStatus">
+          <text class="overview_num">{{statusCount.urgent}}</text>
+          <text class="overview_label">🔔 临近</text>
+        </view>
+        <view class="overview_item {{status === 'todo' ? 'active' : ''}}" data-status="todo" bindtap="selectStatus">
+          <text class="overview_num">{{statusCount.todo}}</text>
+          <text class="overview_label">⚠️ 待补</text>
+        </view>
+        <view class="overview_item {{status === 'recent' ? 'active' : ''}}" data-status="recent" bindtap="selectStatus">
+          <text class="overview_num">{{statusCount.recent}}</text>
+          <text class="overview_label">🕐 最近</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="summary" wx:if="{{summary}}">
+      <view class="summary_title">{{summary.title}}</view>
+      <view class="summary_stats">
+        <view wx:for="{{summary.items}}" wx:key="label" class="summary_item">
+          <text class="summary_num">{{item.value}}</text>
+          <text class="summary_label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="grid" wx:if="{{cards.length}}">
+      <view
+        wx:for="{{cards}}"
+        wx:key="id"
+        class="card {{item.type === 'note' ? 'note_card' : ''}}"
+        data-id="{{item.id}}"
+        data-type="{{item.type}}"
+        bindtap="openDetail"
+      >
+        <view class="card_title">{{item.title}}</view>
+        <view class="card_tag" wx:if="{{item.type === 'ledger' || item.type === 'asset' || item.type === 'subscription'}}">{{item.extra}}</view>
+        <view class="card_big">
+          <text>{{item.bigText}}</text>
+          <text class="unit">{{item.unit}}</text>
+        </view>
+        <view class="mood_tags" wx:if="{{item.type === 'note'}}">
+          <text wx:for="{{item.extra}}" wx:key="*this">#{{item}}</text>
+        </view>
+        <view class="card_meta">{{item.meta}}</view>
+        <button wx:if="{{item.type === 'checkin'}}" class="check_btn" catchtap="checkIn" data-id="{{item.id}}">✓</button>
+        <text class="card_icon">{{item.icon}}</text>
+      </view>
+    </view>
+
+    <view class="empty" wx:else>
+      <view class="empty_icon">🗂️</view>
+      <view class="empty_title">还没有{{categoryTitle === '全部' ? '任何记录' : categoryTitle}}</view>
+      <view class="empty_desc">在底部说一句话，AI 会自动归类收纳。</view>
+      <view class="empty_demo">试试：奶茶18</view>
+    </view>
+  </scroll-view>
+
+  <view class="ai_reply {{aiReply ? 'show' : ''}}">
+    <text class="reply_badge">{{replyLabel}}</text>
+    <text>{{aiReply}}</text>
+  </view>
+
+  <view class="dock">
+    <view class="composer">
+      <text class="spark">🪄</text>
+      <input value="{{inputText}}" placeholder="说一句：奶茶18 / 老爸生日5月23" bindinput="handleInput" confirm-type="send" bindconfirm="submitText" />
+      <button class="mic_btn" bindtap="mockVoice">🎙️</button>
+      <button class="send_btn" disabled="{{!inputText || loading}}" bindtap="submitText">↑</button>
+    </view>
+  </view>
+
+  <view class="drawer {{drawerVisible ? 'show' : ''}}">
+    <view class="scrim" bindtap="closeDrawer"></view>
+    <view class="panel">
+      <view class="panel_head">
+        <view class="logo">🪄</view>
+        <view>
+          <view class="panel_name">AI生活收纳盒</view>
+          <view class="panel_sub">说句话，生活自动归类</view>
+        </view>
+      </view>
+      <view class="nav_list">
+        <view
+          wx:for="{{navItems}}"
+          wx:key="key"
+          class="nav_item {{category === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="selectCategory"
+        >
+          <text class="nav_icon">{{item.icon}}</text>
+          <text class="nav_text">{{item.label}}</text>
+          <text class="nav_count">{{item.count}}</text>
+        </view>
+      </view>
+      <view class="panel_foot">
+        <view class="nav_item" bindtap="openReport"><text class="nav_icon">📊</text><text class="nav_text">生活月报</text><text>›</text></view>
+        <view class="nav_item" bindtap="openSettings"><text class="nav_icon">⚙️</text><text class="nav_text">设置</text><text>›</text></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet_mask {{detailVisible ? 'show' : ''}}" bindtap="closeDetail">
+    <view class="sheet" catchtap="stopTap">
+      <view class="grab"></view>
+      <view class="sheet_head">
+        <text>{{detail.label}}详情</text>
+        <text bindtap="closeDetail">✕</text>
+      </view>
+      <view class="detail_hero">
+        <view>
+          <view class="detail_title">{{detail.title}}</view>
+          <view class="detail_big">{{detail.bigText}} {{detail.unit}}</view>
+        </view>
+        <text class="detail_icon">{{detail.icon}}</text>
+      </view>
+      <view class="attr"><text>补充信息</text><text>{{detail.meta}}</text></view>
+      <view class="attr"><text>来源</text><text>{{detail.rawEntry.rawText || '云端记录'}}</text></view>
+      <view class="sheet_buttons">
+        <button class="delete_btn" bindtap="deleteCurrent">删除</button>
+        <button class="edit_btn" bindtap="showEditPlaceholder">编辑（占位）</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet_mask {{reportVisible ? 'show' : ''}}" bindtap="closeReport">
+    <view class="sheet" catchtap="stopTap">
+      <view class="grab"></view>
+      <view class="sheet_head">
+        <text>生活月报</text>
+        <text bindtap="closeReport">✕</text>
+      </view>
+      <view class="report_hero">
+        <text>{{reportTitle}}</text>
+        <text class="report_line">{{reportText}}</text>
+      </view>
+      <view class="report_stats">
+        <view><text>{{report.totalLedgerCount}}</text><text>笔账</text></view>
+        <view><text>¥{{report.totalAmount}}</text><text>花销</text></view>
+        <view><text>{{report.totalCheckins}}</text><text>打卡</text></view>
+      </view>
+      <view class="tone_row">
+        <button wx:for="{{personas}}" wx:key="*this" class="{{item === persona ? 'active' : ''}}" data-persona="{{item}}" bindtap="switchPersona">{{item}}</button>
+      </view>
+    </view>
+  </view>
+</view>
+

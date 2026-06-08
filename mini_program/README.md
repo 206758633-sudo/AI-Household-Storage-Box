@@ -1,6 +1,19 @@
 # mini_program
 
-小程序开发相关代码统一放在本目录。
+微信小程序工程目录。
 
-当前仓库尚未初始化小程序工程，后续新增页面、组件、工具函数、服务封装和静态资源时，均归入本目录。
+## 目录
+
+- `miniprogram/`: 小程序前端源码。
+- `cloud_functions/`: 微信云开发云函数源码。
+- `package.json`: 本地测试脚本。
+
+## 配置
+
+1. 在微信开发者工具中导入本目录。
+2. 将 `miniprogram/config/env.js` 中的 `cloudEnvId` 改为你的云开发环境 ID。
+3. 在云函数 `storage_box_api` 的环境变量中配置 `HUNYUAN_API_KEY`。
+4. 上传并部署云函数。
+
+AI Key 不要写入前端文件或 Git 仓库。
 

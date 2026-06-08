@@ -1,0 +1,9 @@
+{
+  "name": "ai-household-storage-box-miniprogram",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "node miniprogram/tests/run-tests.js"
+  }
+}
+

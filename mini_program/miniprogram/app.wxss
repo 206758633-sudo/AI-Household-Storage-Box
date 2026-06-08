@@ -1,0 +1,18 @@
+page {
+  min-height: 100%;
+  color: #111114;
+  background: radial-gradient(900rpx 500rpx at 85% -8%, #e9e9ee 0, rgba(233, 233, 238, 0) 60%), #eeeef0;
+  font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+}
+
+button::after {
+  border: 0;
+}
+
