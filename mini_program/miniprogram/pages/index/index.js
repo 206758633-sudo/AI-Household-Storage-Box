@@ -50,7 +50,7 @@ Page({
       this.setData({ entries: data.entries || EMPTY_ENTRIES });
       this.refreshView();
     } catch (error) {
-      this.showToast('云开发未就绪，请检查环境 ID 和云函数');
+      this.showToast('本地测试模式已启动');
     } finally {
       this.setData({ loading: false });
     }
@@ -135,9 +135,11 @@ Page({
     try {
       const result = await createEntry(rawText, this.data.persona);
       this.setData({ entries: result.entries, inputText: '' });
-      this.showAiReply(`已先归到 ${result.label}`, 'AI 正在后台复核...');
+      this.showAiReply(`已先归到 ${result.label}`, result.aiSource === 'local_test' ? '本地测试模式已收纳' : 'AI 正在后台复核...');
       this.refreshView();
-      this.refineCreatedEntry(result.entryId);
+      if (result.aiSource !== 'local_test') {
+        this.refineCreatedEntry(result.entryId);
+      }
     } catch (error) {
       this.showToast('归档失败，请稍后重试');
     } finally {
