@@ -309,13 +309,21 @@
 
 .composer {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 14rpx;
   padding: 18rpx;
   border: 1rpx solid #e2e2e7;
   border-radius: 36rpx;
   background: #fff;
   box-shadow: 0 8rpx 24rpx rgba(20, 20, 28, 0.14);
+}
+
+.text_row,
+.action_row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 14rpx;
 }
 
 .input_wrap {
@@ -327,6 +335,14 @@
   padding: 0 14rpx 0 24rpx;
   border-radius: 24rpx;
   background: #f1f1f4;
+}
+
+.input_badge {
+  flex: 0 0 auto;
+  margin-right: 14rpx;
+  color: #6e6e76;
+  font-size: 24rpx;
+  font-weight: 700;
 }
 
 .text_input {
@@ -348,28 +364,26 @@
   font-size: 32rpx;
 }
 
+.voice_btn,
 .send_btn {
   display: grid;
-  width: 190rpx;
   height: 76rpx;
   place-items: center;
   border-radius: 24rpx;
-  font-size: 32rpx;
+  font-size: 28rpx;
+  font-weight: 700;
 }
 
-.mic_btn {
-  flex: 0 0 auto;
-  width: 56rpx;
-  height: 56rpx;
+.voice_btn {
+  flex: 1;
+  background: #f1f1f4;
   color: #111114;
-  font-size: 30rpx;
-  opacity: 0.75;
 }
 
 .send_btn {
+  flex: 1;
   background: #111114;
   color: #fff;
-  font-weight: 800;
 }
 
 .send_btn[disabled] {

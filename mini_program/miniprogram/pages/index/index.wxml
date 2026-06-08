@@ -94,20 +94,25 @@
 
   <view class="dock">
     <view class="composer">
-      <text class="spark">🪄</text>
-      <view class="input_wrap">
-        <input
-          class="text_input"
-          value="{{inputText}}"
-          placeholder="输入：奶茶18"
-          placeholder-class="input_placeholder"
-          bindinput="handleInput"
-          confirm-type="send"
-          bindconfirm="submitText"
-        />
-        <button class="mic_btn" bindtap="mockVoice">🎙️</button>
+      <view class="text_row">
+        <text class="spark">🪄</text>
+        <view class="input_wrap">
+          <text class="input_badge">文字</text>
+          <input
+            class="text_input"
+            value="{{inputText}}"
+            placeholder="输入文字，例如：奶茶18"
+            placeholder-class="input_placeholder"
+            bindinput="handleInput"
+            confirm-type="send"
+            bindconfirm="submitText"
+          />
+        </view>
       </view>
-      <button class="send_btn" disabled="{{!inputText || loading}}" bindtap="submitText">↑</button>
+      <view class="action_row">
+        <button class="voice_btn" bindtap="mockVoice">🎙️ 语音输入</button>
+        <button class="send_btn" disabled="{{!inputText || loading}}" bindtap="submitText">↑ 发送</button>
+      </view>
     </view>
   </view>
 
