@@ -8,6 +8,7 @@ const {
   getMonthlyReport,
   listEntries,
   refineEntry,
+  updateEntry,
   updateCheckin
 } = require('../../services/cloud-api');
 
@@ -21,6 +22,8 @@ Page({
     detail: {},
     detailVisible: false,
     drawerVisible: false,
+    editForm: {},
+    editVisible: false,
     entries: EMPTY_ENTRIES,
     inputText: '',
     loading: false,
@@ -191,6 +194,96 @@ Page({
     }
   },
 
+  openEditForm() {
+    const detail = this.data.detail || {};
+    const entry = detail.rawEntry || {};
+    this.setData({
+      detailVisible: false,
+      editForm: this.buildEditForm(entry),
+      editVisible: true
+    });
+  },
+
+  buildEditForm(entry) {
+    const baseForm = {
+      entryId: entry._id || entry.id,
+      type: entry.type,
+      label: ENTRY_TYPES[entry.type].label,
+      primaryValue: entry.title || entry.name || entry.text || '',
+      amountValue: entry.amount || entry.price || '',
+      categoryValue: entry.cat || entry.sub || '',
+      cycleValue: entry.cycle || '',
+      dateValue: this.formatEditDate(entry),
+      moodValue: entry.mood === undefined ? '' : String(entry.mood),
+      tagsValue: (entry.tags || []).join('，')
+    };
+
+    const formMeta = {
+      countdown: { primaryLabel: '事件名称', amountLabel: '', categoryLabel: '子分类', dateLabel: '日期' },
+      checkin: { primaryLabel: '习惯名称', amountLabel: '', categoryLabel: '分类', dateLabel: '' },
+      ledger: { primaryLabel: '账目名称', amountLabel: '金额', categoryLabel: '分类', dateLabel: '' },
+      asset: { primaryLabel: '资产名称', amountLabel: '价格', categoryLabel: '分类', dateLabel: '购买日期' },
+      subscription: { primaryLabel: '订阅名称', amountLabel: '价格', categoryLabel: '分类', dateLabel: '', cycleLabel: '周期' },
+      note: { primaryLabel: '内容', amountLabel: '', categoryLabel: '', dateLabel: '', moodLabel: '心情分值', tagsLabel: '标签' }
+    };
+    return { ...baseForm, ...formMeta[entry.type] };
+  },
+
+  formatEditDate(entry) {
+    if (entry.type === 'countdown' && entry.date) {
+      const year = entry.date.year ? `${entry.date.year}-` : '';
+      return `${year}${String(entry.date.month).padStart(2, '0')}-${String(entry.date.day).padStart(2, '0')}`;
+    }
+    if (entry.type === 'asset' && entry.buyDate) {
+      return `${entry.buyDate.year}-${String(entry.buyDate.month).padStart(2, '0')}-${String(entry.buyDate.day).padStart(2, '0')}`;
+    }
+    return '';
+  },
+
+  handleEditInput(event) {
+    const field = event.currentTarget.dataset.field;
+    this.setData({ [`editForm.${field}`]: event.detail.value });
+  },
+
+  buildUpdateFields(editForm) {
+    if (editForm.type === 'countdown') return { title: editForm.primaryValue, sub: editForm.categoryValue, date: this.parseCountdownDate(editForm.dateValue) };
+    if (editForm.type === 'checkin') return { name: editForm.primaryValue, cat: editForm.categoryValue };
+    if (editForm.type === 'ledger') return { title: editForm.primaryValue, amount: Number(editForm.amountValue || 0), cat: editForm.categoryValue };
+    if (editForm.type === 'asset') return { name: editForm.primaryValue, price: Number(editForm.amountValue || 0), cat: editForm.categoryValue, buyDateText: editForm.dateValue };
+    if (editForm.type === 'subscription') return { name: editForm.primaryValue, price: Number(editForm.amountValue || 0), cycle: editForm.cycleValue || '月', cat: editForm.categoryValue };
+    return { text: editForm.primaryValue, mood: Number(editForm.moodValue || 0), tags: this.splitTags(editForm.tagsValue) };
+  },
+
+  parseCountdownDate(dateValue) {
+    const matchedDate = String(dateValue || '').match(/^(?:(\d{4})-)?(\d{1,2})-(\d{1,2})$/);
+    if (!matchedDate) return { month: 1, day: 1 };
+    return {
+      year: matchedDate[1] ? Number(matchedDate[1]) : null,
+      month: Number(matchedDate[2]),
+      day: Number(matchedDate[3])
+    };
+  },
+
+  splitTags(tagsValue) {
+    return String(tagsValue || '').split(/[,，\s]+/).filter(Boolean);
+  },
+
+  async saveEdit() {
+    const editForm = this.data.editForm;
+    if (!editForm.entryId || !editForm.primaryValue) {
+      this.showToast('请填写主要内容');
+      return;
+    }
+    try {
+      const result = await updateEntry(editForm.entryId, this.buildUpdateFields(editForm));
+      this.setData({ entries: result.entries, editVisible: false, editForm: {} });
+      this.refreshView();
+      this.showToast('已保存');
+    } catch (error) {
+      this.showToast('保存失败');
+    }
+  },
+
   async openReport() {
     this.closeDrawer();
     try {
@@ -238,10 +331,17 @@ Page({
     });
   },
 
-  async clearAllEntries() {
-    const result = await clearEntries();
-    this.setData({ entries: result.entries });
-    this.refreshView();
+  clearAllEntries() {
+    wx.showModal({
+      title: '确认清空',
+      content: '将删除全部记录，无法恢复',
+      success: async (res) => {
+        if (!res.confirm) return;
+        const result = await clearEntries();
+        this.setData({ entries: result.entries });
+        this.refreshView();
+      }
+    });
   },
 
   mockVoice() {
@@ -261,15 +361,15 @@ Page({
     this.setData({ detailVisible: false });
   },
 
+  closeEdit() {
+    this.setData({ editVisible: false, editForm: {} });
+  },
+
   closeReport() {
     this.setData({ reportVisible: false });
   },
 
   stopTap() {},
-
-  showEditPlaceholder() {
-    this.showToast('编辑能力后续补齐');
-  },
 
   showAiReply(replyLabel, aiReply) {
     this.setData({ replyLabel, aiReply });

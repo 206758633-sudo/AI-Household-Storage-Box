@@ -149,7 +149,53 @@
       <view class="attr"><text>来源</text><text>{{detail.rawEntry.rawText || '云端记录'}}</text></view>
       <view class="sheet_buttons">
         <button class="delete_btn" bindtap="deleteCurrent">删除</button>
-        <button class="edit_btn" bindtap="showEditPlaceholder">编辑（占位）</button>
+        <button class="edit_btn" bindtap="openEditForm">编辑</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet_mask {{editVisible ? 'show' : ''}}" bindtap="closeEdit">
+    <view class="sheet" catchtap="stopTap">
+      <view class="grab"></view>
+      <view class="sheet_head">
+        <text>编辑{{editForm.label}}</text>
+        <text bindtap="closeEdit">✕</text>
+      </view>
+
+      <view class="edit_form">
+        <view class="edit_row" wx:if="{{editForm.primaryLabel}}">
+          <text>{{editForm.primaryLabel}}</text>
+          <input value="{{editForm.primaryValue}}" data-field="primaryValue" bindinput="handleEditInput" />
+        </view>
+        <view class="edit_row" wx:if="{{editForm.amountLabel}}">
+          <text>{{editForm.amountLabel}}</text>
+          <input type="digit" value="{{editForm.amountValue}}" data-field="amountValue" bindinput="handleEditInput" />
+        </view>
+        <view class="edit_row" wx:if="{{editForm.categoryLabel}}">
+          <text>{{editForm.categoryLabel}}</text>
+          <input value="{{editForm.categoryValue}}" data-field="categoryValue" bindinput="handleEditInput" />
+        </view>
+        <view class="edit_row" wx:if="{{editForm.cycleLabel}}">
+          <text>{{editForm.cycleLabel}}</text>
+          <input value="{{editForm.cycleValue}}" data-field="cycleValue" bindinput="handleEditInput" placeholder="月 / 年" />
+        </view>
+        <view class="edit_row" wx:if="{{editForm.dateLabel}}">
+          <text>{{editForm.dateLabel}}</text>
+          <input value="{{editForm.dateValue}}" data-field="dateValue" bindinput="handleEditInput" placeholder="2026-06-08 或 06-08" />
+        </view>
+        <view class="edit_row" wx:if="{{editForm.moodLabel}}">
+          <text>{{editForm.moodLabel}}</text>
+          <input type="number" value="{{editForm.moodValue}}" data-field="moodValue" bindinput="handleEditInput" placeholder="-2 到 2" />
+        </view>
+        <view class="edit_row" wx:if="{{editForm.tagsLabel}}">
+          <text>{{editForm.tagsLabel}}</text>
+          <input value="{{editForm.tagsValue}}" data-field="tagsValue" bindinput="handleEditInput" placeholder="用逗号分隔" />
+        </view>
+      </view>
+
+      <view class="sheet_buttons">
+        <button class="delete_btn" bindtap="closeEdit">取消</button>
+        <button class="edit_btn" bindtap="saveEdit">保存</button>
       </view>
     </view>
   </view>
@@ -176,4 +222,3 @@
     </view>
   </view>
 </view>
-

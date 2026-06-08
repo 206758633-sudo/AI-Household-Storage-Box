@@ -3,6 +3,26 @@ const { callHunyuanJson } = require('./hunyuan_client');
 const { logWarn } = require('./logger');
 
 const COLLECTION_NAME = 'entries';
+
+const TYPE_FIELDS = {
+  countdown: ['title', 'date', 'recurring', 'person', 'sub'],
+  checkin: ['name', 'count', 'history', 'cat'],
+  ledger: ['title', 'amount', 'cat', 'date'],
+  asset: ['name', 'price', 'buyDate', 'needDate', 'cat', 'status'],
+  subscription: ['name', 'cycle', 'price', 'billDate', 'cat'],
+  note: ['text', 'mood', 'tags', 'date']
+};
+
+function buildStaleFieldRemovals(db, oldType, newType) {
+  if (oldType === newType) return {};
+  const _ = db.command;
+  const oldFields = TYPE_FIELDS[oldType] || [];
+  const newFields = TYPE_FIELDS[newType] || [];
+  return oldFields
+    .filter(f => !newFields.includes(f))
+    .reduce((acc, f) => { acc[f] = _.remove(); return acc; }, {});
+}
+
 const TYPE_LABELS = {
   countdown: '倒数日',
   checkin: '打卡',
@@ -99,6 +119,7 @@ async function listEntries(db, openid) {
   const result = await db.collection(COLLECTION_NAME)
     .where({ _openid: openid })
     .orderBy('createdAt', 'desc')
+    .limit(1000)
     .get();
   return groupEntries(result.data || []);
 }
@@ -131,12 +152,14 @@ async function refineEntry(db, openid, entryId) {
     };
   }
 
+  const staleFieldRemovals = buildStaleFieldRemovals(db, entry.type, classifyResult.type);
   await db.collection(COLLECTION_NAME).doc(entryId).update({
     data: {
       type: classifyResult.type,
       updatedAt: new Date().toISOString(),
       aiSource: classifyResult.aiSource,
-      ...classifyResult.fields
+      ...classifyResult.fields,
+      ...staleFieldRemovals
     }
   });
 
@@ -150,6 +173,37 @@ async function refineEntry(db, openid, entryId) {
 
 async function deleteEntry(db, openid, entryId) {
   await db.collection(COLLECTION_NAME).where({ _openid: openid, _id: entryId }).remove();
+  return { entries: await listEntries(db, openid) };
+}
+
+function parseDateString(dateString) {
+  if (!dateString) return null;
+  const matchedDate = String(dateString).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!matchedDate) return null;
+  return { year: Number(matchedDate[1]), month: Number(matchedDate[2]), day: Number(matchedDate[3]) };
+}
+
+function buildUpdateData(fields) {
+  const updateData = { updatedAt: new Date().toISOString() };
+  Object.keys(fields || {}).forEach((key) => {
+    if (key !== 'buyDateText' && fields[key] !== undefined) {
+      updateData[key] = fields[key];
+    }
+  });
+  if (fields && fields.buyDateText !== undefined) {
+    updateData.buyDate = parseDateString(fields.buyDateText);
+    updateData.needDate = !updateData.buyDate;
+  }
+  return updateData;
+}
+
+async function updateEntry(db, openid, entryId, fields) {
+  const result = await db.collection(COLLECTION_NAME).where({ _openid: openid, _id: entryId }).get();
+  if (!result.data[0]) throw new Error('记录不存在');
+
+  await db.collection(COLLECTION_NAME).doc(entryId).update({
+    data: buildUpdateData(fields)
+  });
   return { entries: await listEntries(db, openid) };
 }
 
@@ -181,5 +235,6 @@ module.exports = {
   deleteEntry,
   listEntries,
   refineEntry,
+  updateEntry,
   updateCheckin
 };

@@ -23,6 +23,7 @@ wx.cloud.callFunction({
 | `refine_entry` | `{ entryId }` | `{ entries, refined, label, reply }` |
 | `delete_entry` | `{ entryId }` | `{ entries }` |
 | `update_checkin` | `{ entryId }` | `{ entries, reply }` |
+| `update_entry` | `{ entryId, fields }` | `{ entries }` |
 | `clear_entries` | `{}` | `{ entries }` |
 | `get_monthly_report` | `{ persona }` | `{ report, summary }` |
 

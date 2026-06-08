@@ -1,5 +1,5 @@
 const cloud = require('wx-server-sdk');
-const { clearEntries, createEntry, deleteEntry, listEntries, refineEntry, updateCheckin } = require('./entry_service');
+const { clearEntries, createEntry, deleteEntry, listEntries, refineEntry, updateEntry, updateCheckin } = require('./entry_service');
 const { buildMonthlyReport } = require('./report_service');
 const { logError } = require('./logger');
 
@@ -38,6 +38,9 @@ exports.main = async (event) => {
     }
     if (event.action === 'update_checkin') {
       return ok(await updateCheckin(db, openid, payload.entryId));
+    }
+    if (event.action === 'update_entry') {
+      return ok(await updateEntry(db, openid, payload.entryId, payload.fields));
     }
     if (event.action === 'clear_entries') {
       return ok(await clearEntries(db, openid));

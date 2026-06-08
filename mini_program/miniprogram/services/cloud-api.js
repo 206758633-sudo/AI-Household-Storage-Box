@@ -8,13 +8,13 @@ function isCloudConfigured() {
 }
 
 function runWithTimeout(promise) {
-  let timerId = null;
-  const timeoutPromise = new Promise((resolve, reject) => {
-    timerId = setTimeout(() => reject(new Error('cloud timeout')), CLOUD_TIMEOUT_MS);
+  return new Promise((resolve, reject) => {
+    const timerId = setTimeout(() => reject(new Error('cloud timeout')), CLOUD_TIMEOUT_MS);
+    promise.then(
+      result => { clearTimeout(timerId); resolve(result); },
+      error => { clearTimeout(timerId); reject(error); }
+    );
   });
-
-  promise.catch(() => {});
-  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timerId));
 }
 
 function callStorageFunction(action, payload = {}) {
@@ -57,6 +57,10 @@ function updateCheckin(entryId) {
   return callStorageFunction('update_checkin', { entryId }).catch(() => localApi.updateCheckin(entryId));
 }
 
+function updateEntry(entryId, fields) {
+  return callStorageFunction('update_entry', { entryId, fields }).catch(() => localApi.updateEntry(entryId, fields));
+}
+
 function getMonthlyReport(persona) {
   return callStorageFunction('get_monthly_report', { persona }).catch(() => localApi.getMonthlyReport(persona));
 }
@@ -72,5 +76,6 @@ module.exports = {
   getMonthlyReport,
   listEntries,
   refineEntry,
+  updateEntry,
   updateCheckin
 };

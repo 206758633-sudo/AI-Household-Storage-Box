@@ -54,7 +54,7 @@ function routeTextLocally(rawText) {
   const dateParts = parseDateText(text);
 
   if (/每月|每年|包月|包年|会员|订阅|续费|icloud|网盘|vip/i.test(text)) {
-    return { type: 'subscription', fields: { name: text.replace(/\d+元?|每月|每年|会员|订阅|续费/g, '') || '某订阅', cycle: /年/.test(text) ? '年' : '月', price: amount || 0, billDate: { day: new Date().getDate() }, cat: '生活' }, label: '订阅' };
+    return { type: 'subscription', fields: { name: text.replace(/\d+元?|每月|每年|会员|订阅|续费/g, '') || '某订阅', cycle: /年/.test(text) ? '年' : '月', price: amount || 0, billDate: { day: new Date().getDate(), month: new Date().getMonth() + 1 }, cat: '生活' }, label: '订阅' };
   }
   if (amount !== null && amount >= 300 && /手机|电脑|平板|iphone|ipad|mac|相机|耳机|手表/i.test(text)) {
     return { type: 'asset', fields: { name: text.replace(/\d+(\.\d+)?元?|买了?|入手/g, '') || '新物品', price: amount, buyDate: null, needDate: true, cat: '电子产品', status: '使用中' }, label: '资产' };
@@ -92,18 +92,63 @@ function deleteEntry(entryId) {
   return Promise.resolve({ entries: writeEntries(entries) });
 }
 
+function findEntry(entries, entryId) {
+  for (const type of Object.keys(entries)) {
+    const entry = entries[type].find((item) => item._id === entryId || item.id === entryId);
+    if (entry) return entry;
+  }
+  return null;
+}
+
+function parseDateString(dateString) {
+  if (!dateString) return null;
+  const matchedDate = dateString.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!matchedDate) return null;
+  return { year: Number(matchedDate[1]), month: Number(matchedDate[2]), day: Number(matchedDate[3]) };
+}
+
+function updateEntry(entryId, fields) {
+  const entries = readEntries();
+  const entry = findEntry(entries, entryId);
+  if (!entry) return Promise.reject(new Error('记录不存在'));
+
+  Object.keys(fields || {}).forEach((key) => {
+    if (key !== 'buyDateText' && fields[key] !== undefined) entry[key] = fields[key];
+  });
+  if (entry.type === 'asset' && fields.buyDateText !== undefined) {
+    entry.buyDate = parseDateString(fields.buyDateText);
+    entry.needDate = !entry.buyDate;
+  }
+  entry.updatedAt = new Date().toISOString();
+  return Promise.resolve({ entries: writeEntries(entries) });
+}
+
 function updateCheckin(entryId) {
   const entries = readEntries();
   const entry = entries.checkin.find((item) => item._id === entryId || item.id === entryId);
   if (entry) {
     entry.count = Number(entry.count || 0) + 1;
-    entry.history = (entry.history || []).concat(true);
+    entry.history = (entry.history || []).concat(true).slice(-30);
   }
   return Promise.resolve({ entries: writeEntries(entries), reply: entry ? `第 ${entry.count} 次「${entry.name}」` : '已打卡' });
 }
 
 function getMonthlyReport(persona) {
-  const report = buildReportSummary(readEntries());
+  const allEntries = readEntries();
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const isCurrentMonth = (dateStr) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return d.getFullYear() === year && d.getMonth() === month;
+  };
+  const monthEntries = {
+    ...allEntries,
+    ledger: allEntries.ledger.filter(e => isCurrentMonth(e.date)),
+    note: allEntries.note.filter(e => isCurrentMonth(e.date))
+  };
+  const report = buildReportSummary(monthEntries);
   return Promise.resolve({ report, summary: buildLocalReportText(report, persona) });
 }
 
@@ -122,6 +167,6 @@ module.exports = {
   getMonthlyReport,
   listEntries,
   refineEntry,
+  updateEntry,
   updateCheckin
 };
-
