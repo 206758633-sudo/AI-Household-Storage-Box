@@ -1,5 +1,6 @@
 const { ENTRY_TYPES, EMPTY_ENTRIES, NAV_ITEMS, PERSONAS, SUBTABS } = require('../../core/constants');
 const { buildEntryCard, flattenEntries, getEntrySubtype, matchStatusFilter } = require('../../core/entry-view-models');
+const { getDaysSince } = require('../../core/date-utils');
 const { buildReportSummary } = require('../../core/report-rules');
 const {
   clearEntries,
@@ -179,7 +180,50 @@ Page({
   openDetail(event) {
     const { id } = event.currentTarget.dataset;
     const detail = this.data.cards.find((card) => card.id === id);
-    this.setData({ detail, detailVisible: true });
+    this.setData({ detail: this.buildDetailView(detail), detailVisible: true });
+  },
+
+  buildDetailView(detail) {
+    if (!detail || !detail.rawEntry) return {};
+    if (detail.type === 'asset') return this.buildAssetDetailView(detail);
+    return {
+      ...detail,
+      typeIcon: ENTRY_TYPES[detail.type].icon,
+      attrs: [
+        { key: '补充信息', value: detail.meta || '暂无' },
+        { key: '来源', value: detail.rawEntry.rawText || '云端记录' }
+      ]
+    };
+  },
+
+  buildAssetDetailView(detail) {
+    const entry = detail.rawEntry;
+    const buyDateText = this.getAssetBuyDateText(entry);
+    const dailyCostText = this.getAssetDailyCostText(entry);
+    return {
+      ...detail,
+      typeIcon: ENTRY_TYPES[detail.type].icon,
+      bigText: entry.needDate || !entry.buyDate ? '待补日期' : detail.bigText,
+      attrs: [
+        { key: '购入价格', value: `${entry.price || 0} 元` },
+        { key: '日均成本', value: dailyCostText },
+        { key: '购买时间', value: buyDateText },
+        { key: '分类', value: entry.cat || '生活' },
+        { key: '使用状态', value: entry.status || '使用中' }
+      ]
+    };
+  },
+
+  getAssetBuyDateText(entry) {
+    if (!entry.buyDate) return '待补充（AI 无法从一句话得知）';
+    return `${entry.buyDate.year}年${entry.buyDate.month}月${entry.buyDate.day}日`;
+  },
+
+  getAssetDailyCostText(entry) {
+    if (!entry.buyDate) return '待补购买日期';
+    const usedDays = getDaysSince(entry.buyDate);
+    const dailyCost = Number(entry.price || 0) / Math.max(1, usedDays);
+    return `${dailyCost.toFixed(2)} 元/天`;
   },
 
   async deleteCurrent() {
@@ -215,6 +259,7 @@ Page({
       cycleValue: entry.cycle || '',
       dateValue: this.formatEditDate(entry),
       moodValue: entry.mood === undefined ? '' : String(entry.mood),
+      statusValue: entry.status || '',
       tagsValue: (entry.tags || []).join('，')
     };
 
@@ -222,7 +267,7 @@ Page({
       countdown: { primaryLabel: '事件名称', amountLabel: '', categoryLabel: '子分类', dateLabel: '日期' },
       checkin: { primaryLabel: '习惯名称', amountLabel: '', categoryLabel: '分类', dateLabel: '' },
       ledger: { primaryLabel: '账目名称', amountLabel: '金额', categoryLabel: '分类', dateLabel: '' },
-      asset: { primaryLabel: '资产名称', amountLabel: '价格', categoryLabel: '分类', dateLabel: '购买日期' },
+      asset: { primaryLabel: '资产名称', amountLabel: '价格', categoryLabel: '分类', dateLabel: '购买日期', statusLabel: '使用状态' },
       subscription: { primaryLabel: '订阅名称', amountLabel: '价格', categoryLabel: '分类', dateLabel: '', cycleLabel: '周期' },
       note: { primaryLabel: '内容', amountLabel: '', categoryLabel: '', dateLabel: '', moodLabel: '心情分值', tagsLabel: '标签' }
     };
@@ -249,7 +294,7 @@ Page({
     if (editForm.type === 'countdown') return { title: editForm.primaryValue, sub: editForm.categoryValue, date: this.parseCountdownDate(editForm.dateValue) };
     if (editForm.type === 'checkin') return { name: editForm.primaryValue, cat: editForm.categoryValue };
     if (editForm.type === 'ledger') return { title: editForm.primaryValue, amount: Number(editForm.amountValue || 0), cat: editForm.categoryValue };
-    if (editForm.type === 'asset') return { name: editForm.primaryValue, price: Number(editForm.amountValue || 0), cat: editForm.categoryValue, buyDateText: editForm.dateValue };
+    if (editForm.type === 'asset') return { name: editForm.primaryValue, price: Number(editForm.amountValue || 0), cat: editForm.categoryValue, buyDateText: editForm.dateValue, status: editForm.statusValue || '使用中' };
     if (editForm.type === 'subscription') return { name: editForm.primaryValue, price: Number(editForm.amountValue || 0), cycle: editForm.cycleValue || '月', cat: editForm.categoryValue };
     return { text: editForm.primaryValue, mood: Number(editForm.moodValue || 0), tags: this.splitTags(editForm.tagsValue) };
   },

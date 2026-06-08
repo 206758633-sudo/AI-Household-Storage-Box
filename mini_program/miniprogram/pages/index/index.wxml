@@ -135,7 +135,7 @@
     <view class="sheet" catchtap="stopTap">
       <view class="grab"></view>
       <view class="sheet_head">
-        <text>{{detail.label}}详情</text>
+        <text>{{detail.typeIcon}} {{detail.label}}详情</text>
         <text bindtap="closeDetail">✕</text>
       </view>
       <view class="detail_hero">
@@ -145,8 +145,10 @@
         </view>
         <text class="detail_icon">{{detail.icon}}</text>
       </view>
-      <view class="attr"><text>补充信息</text><text>{{detail.meta}}</text></view>
-      <view class="attr"><text>来源</text><text>{{detail.rawEntry.rawText || '云端记录'}}</text></view>
+      <view class="attr" wx:for="{{detail.attrs}}" wx:key="key">
+        <text>{{item.key}}</text>
+        <text>{{item.value}}</text>
+      </view>
       <view class="sheet_buttons">
         <button class="delete_btn" bindtap="deleteCurrent">删除</button>
         <button class="edit_btn" bindtap="openEditForm">编辑</button>
@@ -182,6 +184,10 @@
         <view class="edit_row" wx:if="{{editForm.dateLabel}}">
           <text>{{editForm.dateLabel}}</text>
           <input value="{{editForm.dateValue}}" data-field="dateValue" bindinput="handleEditInput" placeholder="2026-06-08 或 06-08" />
+        </view>
+        <view class="edit_row" wx:if="{{editForm.statusLabel}}">
+          <text>{{editForm.statusLabel}}</text>
+          <input value="{{editForm.statusValue}}" data-field="statusValue" bindinput="handleEditInput" placeholder="使用中" />
         </view>
         <view class="edit_row" wx:if="{{editForm.moodLabel}}">
           <text>{{editForm.moodLabel}}</text>

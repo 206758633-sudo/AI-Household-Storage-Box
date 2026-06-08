@@ -516,6 +516,17 @@
   font-size: 28rpx;
 }
 
+.attr text:first-child {
+  flex: 0 0 160rpx;
+}
+
+.attr text:last-child {
+  flex: 1;
+  color: #111114;
+  font-weight: 700;
+  text-align: right;
+}
+
 .sheet_buttons {
   display: flex;
   gap: 20rpx;

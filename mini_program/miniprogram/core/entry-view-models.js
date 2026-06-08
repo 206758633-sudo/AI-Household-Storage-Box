@@ -56,6 +56,16 @@ function getLedgerCard(entry) {
   };
 }
 
+function getAssetIcon(name) {
+  if (/相机|camera|sony/i.test(name || '')) return '📷';
+  if (/iphone|手机/i.test(name || '')) return '📱';
+  if (/ipad|平板/i.test(name || '')) return '📲';
+  if (/mac|电脑/i.test(name || '')) return '💻';
+  if (/耳机|headphone/i.test(name || '')) return '🎧';
+  if (/手表|watch/i.test(name || '')) return '⌚';
+  return '📦';
+}
+
 function getAssetCard(entry, today) {
   if (entry.needDate || !entry.buyDate) {
     return {
@@ -63,7 +73,8 @@ function getAssetCard(entry, today) {
       unit: '',
       meta: `${entry.price || 0}元 · 补购买日期后算日均`,
       title: entry.name,
-      extra: '待补'
+      extra: '待补',
+      icon: getAssetIcon(entry.name)
     };
   }
 
@@ -74,7 +85,8 @@ function getAssetCard(entry, today) {
     unit: '',
     meta: `${entry.price}元 · ${dailyCost}元/天`,
     title: entry.name,
-    extra: entry.cat || '生活'
+    extra: entry.cat || '生活',
+    icon: getAssetIcon(entry.name)
   };
 }
 
@@ -116,7 +128,7 @@ function buildEntryCard(entry, today = new Date()) {
     ...cardBody,
     id: entry._id || entry.id,
     type: entry.type,
-    icon: entry.icon || ENTRY_TYPES[entry.type].icon,
+    icon: cardBody.icon || entry.icon || ENTRY_TYPES[entry.type].icon,
     label: ENTRY_TYPES[entry.type].label,
     rawEntry: entry
   };
@@ -131,10 +143,10 @@ function isEntryRecent(entry, today = new Date()) {
 
 function isEntryUrgent(entry, today = new Date()) {
   if (entry.type === 'countdown') {
-    return getCountdownCard(entry, today).bigText <= 14;
+    return Number(getCountdownCard(entry, today).bigText) <= 14;
   }
   if (entry.type !== 'subscription') return false;
-  return getSubscriptionCard(entry, today).bigText <= 14;
+  return Number(getSubscriptionCard(entry, today).bigText) <= 14;
 }
 
 function isEntryTodo(entry) {
@@ -160,4 +172,3 @@ module.exports = {
   isEntryUrgent,
   matchStatusFilter
 };
-
