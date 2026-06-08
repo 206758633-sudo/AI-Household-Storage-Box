@@ -310,27 +310,47 @@
 .composer {
   display: flex;
   align-items: center;
-  gap: 18rpx;
-  padding: 18rpx 18rpx 18rpx 28rpx;
+  gap: 14rpx;
+  padding: 18rpx;
   border: 1rpx solid #e2e2e7;
   border-radius: 36rpx;
   background: #fff;
   box-shadow: 0 8rpx 24rpx rgba(20, 20, 28, 0.14);
 }
 
-.composer input {
+.input_wrap {
+  display: flex;
+  align-items: center;
   flex: 1;
+  min-width: 0;
+  height: 76rpx;
+  padding: 0 14rpx 0 24rpx;
+  border-radius: 24rpx;
+  background: #f1f1f4;
+}
+
+.text_input {
+  flex: 1;
+  min-width: 0;
+  height: 76rpx;
+  color: #111114;
   font-size: 30rpx;
 }
 
+.input_placeholder {
+  color: #8f8f99;
+}
+
 .spark {
+  flex: 0 0 auto;
+  width: 52rpx;
+  text-align: center;
   font-size: 32rpx;
 }
 
-.mic_btn,
 .send_btn {
   display: grid;
-  width: 76rpx;
+  width: 190rpx;
   height: 76rpx;
   place-items: center;
   border-radius: 24rpx;
@@ -338,7 +358,12 @@
 }
 
 .mic_btn {
-  background: #f1f1f4;
+  flex: 0 0 auto;
+  width: 56rpx;
+  height: 56rpx;
+  color: #111114;
+  font-size: 30rpx;
+  opacity: 0.75;
 }
 
 .send_btn {

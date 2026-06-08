@@ -95,8 +95,18 @@
   <view class="dock">
     <view class="composer">
       <text class="spark">🪄</text>
-      <input value="{{inputText}}" placeholder="说一句：奶茶18 / 老爸生日5月23" bindinput="handleInput" confirm-type="send" bindconfirm="submitText" />
-      <button class="mic_btn" bindtap="mockVoice">🎙️</button>
+      <view class="input_wrap">
+        <input
+          class="text_input"
+          value="{{inputText}}"
+          placeholder="输入：奶茶18"
+          placeholder-class="input_placeholder"
+          bindinput="handleInput"
+          confirm-type="send"
+          bindconfirm="submitText"
+        />
+        <button class="mic_btn" bindtap="mockVoice">🎙️</button>
+      </view>
       <button class="send_btn" disabled="{{!inputText || loading}}" bindtap="submitText">↑</button>
     </view>
   </view>
