@@ -11,14 +11,14 @@ AI 生活收纳盒项目仓库。
 1. 使用微信开发者工具导入 `mini_program/`。
 2. 将 `mini_program/miniprogram/config/env.js` 中的 `YOUR_CLOUD_ENV_ID` 替换为你的云开发环境 ID。
 3. 创建云数据库集合 `entries`。
-4. 在云函数 `storage_box_api` 配置环境变量 `HUNYUAN_API_KEY`。
+4. 在云函数 `storage_box_api` 配置环境变量 `LLM_API_KEY`。
 5. 上传并部署 `mini_program/cloud_functions/storage_box_api/`。
 
 ## 功能列表
 
 - 一句话输入，自动归档到 6 类生活记录。
 - 微信云数据库持久化，按用户 openid 隔离。
-- 腾讯云混元 AI 归档，失败时本地规则兜底。
+- 本地规则快速归档，腾讯云混元或其他 OpenAI 兼容模型后台复核。
 - 首页全部频道、状态筛选、类目侧边栏、详情删除、打卡 +1。
 - 生活月报统计与 AI 总结兜底。
 

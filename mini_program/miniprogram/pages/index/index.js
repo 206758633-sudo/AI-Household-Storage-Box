@@ -7,6 +7,7 @@ const {
   deleteEntry,
   getMonthlyReport,
   listEntries,
+  refineEntry,
   updateCheckin
 } = require('../../services/cloud-api');
 
@@ -129,17 +130,32 @@ Page({
   async submitText() {
     const rawText = this.data.inputText.trim();
     if (!rawText || this.data.loading) return;
-    this.setData({ loading: true, aiReply: 'AI 正在归档...', replyLabel: '🪄 归档中' });
+    this.setData({ loading: true, aiReply: '本地规则快速收纳中...', replyLabel: '🪄 归档中' });
 
     try {
       const result = await createEntry(rawText, this.data.persona);
       this.setData({ entries: result.entries, inputText: '' });
-      this.showAiReply(`已归到 ${result.label}`, result.reply);
+      this.showAiReply(`已先归到 ${result.label}`, 'AI 正在后台复核...');
       this.refreshView();
+      this.refineCreatedEntry(result.entryId);
     } catch (error) {
       this.showToast('归档失败，请稍后重试');
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  async refineCreatedEntry(entryId) {
+    if (!entryId) return;
+    try {
+      const result = await refineEntry(entryId);
+      this.setData({ entries: result.entries });
+      this.refreshView();
+      if (result.refined) {
+        this.showAiReply(`AI复核：${result.label}`, result.reply);
+      }
+    } catch (error) {
+      this.showToast('已先收纳，AI 复核稍后再试');
     }
   },
 
@@ -215,7 +231,7 @@ Page({
     this.closeDrawer();
     wx.showModal({
       title: '设置',
-      content: '请在 config/env.js 配置云开发环境 ID，并在云函数环境变量中配置 HUNYUAN_API_KEY。AI Key 不会保存在前端。',
+      content: '请在 config/env.js 配置云开发环境 ID，并在云函数环境变量中配置 LLM_API_KEY。AI Key 不会保存在前端。',
       showCancel: false
     });
   },
@@ -261,4 +277,3 @@ Page({
     wx.showToast({ title, icon: 'none' });
   }
 });
-

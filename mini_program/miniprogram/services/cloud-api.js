@@ -28,6 +28,10 @@ function deleteEntry(entryId) {
   return callStorageFunction('delete_entry', { entryId });
 }
 
+function refineEntry(entryId) {
+  return callStorageFunction('refine_entry', { entryId });
+}
+
 function updateCheckin(entryId) {
   return callStorageFunction('update_checkin', { entryId });
 }
@@ -46,6 +50,6 @@ module.exports = {
   deleteEntry,
   getMonthlyReport,
   listEntries,
+  refineEntry,
   updateCheckin
 };
-

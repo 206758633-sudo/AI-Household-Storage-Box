@@ -67,14 +67,18 @@ function normalizeAiResult(rawText, aiResult) {
   };
 }
 
-async function classifyText(rawText) {
+async function classifyTextWithAi(rawText) {
   try {
     const aiResult = await callHunyuanJson(buildClassifyMessages(rawText));
     return { ...normalizeAiResult(rawText, aiResult), aiSource: 'hunyuan' };
   } catch (error) {
     logWarn('entry_service', 'AI classify fallback', { message: error.message });
-    return { ...routeText(rawText), aiSource: 'local' };
+    return null;
   }
+}
+
+function classifyTextLocally(rawText) {
+  return { ...routeText(rawText), aiSource: 'local' };
 }
 
 function buildEntryDocument(options) {
@@ -101,14 +105,46 @@ async function listEntries(db, openid) {
 
 async function createEntry(db, openid, rawText) {
   const safeText = sanitizeRawText(rawText);
-  const classifyResult = await classifyText(safeText);
+  const classifyResult = classifyTextLocally(safeText);
   const entryDocument = buildEntryDocument({ openid, rawText: safeText, classifyResult });
-  await db.collection(COLLECTION_NAME).add({ data: entryDocument });
+  const addResult = await db.collection(COLLECTION_NAME).add({ data: entryDocument });
   return {
     entries: await listEntries(db, openid),
+    entryId: addResult._id,
     label: TYPE_LABELS[classifyResult.type],
     reply: classifyResult.reply,
     aiSource: classifyResult.aiSource
+  };
+}
+
+async function refineEntry(db, openid, entryId) {
+  const result = await db.collection(COLLECTION_NAME).where({ _openid: openid, _id: entryId }).get();
+  const entry = result.data[0];
+  if (!entry) throw new Error('记录不存在');
+
+  const classifyResult = await classifyTextWithAi(entry.rawText);
+  if (!classifyResult) {
+    return {
+      entries: await listEntries(db, openid),
+      refined: false,
+      reply: '本地规则已收纳，AI 稍后再试。'
+    };
+  }
+
+  await db.collection(COLLECTION_NAME).doc(entryId).update({
+    data: {
+      type: classifyResult.type,
+      updatedAt: new Date().toISOString(),
+      aiSource: classifyResult.aiSource,
+      ...classifyResult.fields
+    }
+  });
+
+  return {
+    entries: await listEntries(db, openid),
+    refined: true,
+    label: TYPE_LABELS[classifyResult.type],
+    reply: classifyResult.reply
   };
 }
 
@@ -144,6 +180,6 @@ module.exports = {
   createEntry,
   deleteEntry,
   listEntries,
+  refineEntry,
   updateCheckin
 };
-

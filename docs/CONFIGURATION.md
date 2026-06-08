@@ -16,9 +16,11 @@ cloudEnvId: 'YOUR_CLOUD_ENV_ID'
 
 | 变量 | 必填 | 默认值 | 说明 |
 |---|---|---|---|
-| `HUNYUAN_API_KEY` | 是 | 无 | 腾讯云混元 API Key |
-| `HUNYUAN_MODEL` | 否 | `hunyuan-turbos-latest` | 混元模型名 |
-| `HUNYUAN_BASE_URL` | 否 | `https://api.hunyuan.cloud.tencent.com/v1` | OpenAI 兼容接口地址 |
+| `LLM_API_KEY` | 是 | 无 | OpenAI 兼容模型 API Key |
+| `LLM_MODEL` | 否 | `hunyuan-turbos-latest` | 模型名 |
+| `LLM_BASE_URL` | 否 | `https://api.hunyuan.cloud.tencent.com/v1` | OpenAI 兼容接口地址 |
+| `LLM_TIMEOUT_MS` | 否 | `3000` | AI 复核超时时间 |
 
 不要把真实 Key 写入仓库。
 
+兼容旧变量：`HUNYUAN_API_KEY`、`HUNYUAN_MODEL`、`HUNYUAN_BASE_URL`。

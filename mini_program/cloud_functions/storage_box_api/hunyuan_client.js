@@ -2,7 +2,11 @@ const https = require('https');
 
 const DEFAULT_BASE_URL = 'https://api.hunyuan.cloud.tencent.com/v1';
 const DEFAULT_MODEL = 'hunyuan-turbos-latest';
-const REQUEST_TIMEOUT_MS = 12000;
+const DEFAULT_TIMEOUT_MS = 3000;
+
+function getRequestTimeoutMs() {
+  return Number(process.env.LLM_TIMEOUT_MS || process.env.HUNYUAN_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
+}
 
 function requestJson(options, body) {
   return new Promise((resolve, reject) => {
@@ -18,7 +22,7 @@ function requestJson(options, body) {
       });
     });
 
-    request.setTimeout(REQUEST_TIMEOUT_MS, () => request.destroy(new Error('Hunyuan timeout')));
+    request.setTimeout(getRequestTimeoutMs(), () => request.destroy(new Error('LLM timeout')));
     request.on('error', reject);
     request.write(JSON.stringify(body));
     request.end();
@@ -39,13 +43,13 @@ function buildChatOptions(apiKey, baseUrl) {
 }
 
 async function callHunyuanJson(messages) {
-  const apiKey = process.env.HUNYUAN_API_KEY;
+  const apiKey = process.env.LLM_API_KEY || process.env.HUNYUAN_API_KEY;
   if (!apiKey) {
-    throw new Error('Missing HUNYUAN_API_KEY');
+    throw new Error('Missing LLM_API_KEY');
   }
 
-  const baseUrl = process.env.HUNYUAN_BASE_URL || DEFAULT_BASE_URL;
-  const model = process.env.HUNYUAN_MODEL || DEFAULT_MODEL;
+  const baseUrl = process.env.LLM_BASE_URL || process.env.HUNYUAN_BASE_URL || DEFAULT_BASE_URL;
+  const model = process.env.LLM_MODEL || process.env.HUNYUAN_MODEL || DEFAULT_MODEL;
   const response = await requestJson(buildChatOptions(apiKey, baseUrl), {
     model,
     messages,
@@ -59,4 +63,3 @@ async function callHunyuanJson(messages) {
 module.exports = {
   callHunyuanJson
 };
-

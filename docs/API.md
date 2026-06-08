@@ -19,7 +19,8 @@ wx.cloud.callFunction({
 | action | payload | 返回 |
 |---|---|---|
 | `list_entries` | `{}` | `{ entries }` |
-| `create_entry` | `{ rawText, persona }` | `{ entries, label, reply, aiSource }` |
+| `create_entry` | `{ rawText, persona }` | `{ entries, entryId, label, reply, aiSource }` |
+| `refine_entry` | `{ entryId }` | `{ entries, refined, label, reply }` |
 | `delete_entry` | `{ entryId }` | `{ entries }` |
 | `update_checkin` | `{ entryId }` | `{ entries, reply }` |
 | `clear_entries` | `{}` | `{ entries }` |
@@ -34,3 +35,6 @@ wx.cloud.callFunction({
 }
 ```
 
+## 速度策略
+
+`create_entry` 只使用本地规则快速归档并立即返回。前端拿到 `entryId` 后再异步调用 `refine_entry`，由 AI 复核分类和字段。这样用户可以先看到卡片出现，不被模型响应速度阻塞。

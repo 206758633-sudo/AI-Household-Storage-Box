@@ -7,7 +7,7 @@
   -> miniprogram/services/cloud-api.js
   -> wx.cloud.callFunction(storage_box_api)
   -> 云数据库 entries
-  -> 腾讯云混元 OpenAI 兼容接口
+  -> OpenAI 兼容 LLM 接口
 ```
 
 ## 分层
@@ -20,7 +20,7 @@
 ## 关键边界
 
 - 前端不保存腾讯云 AI Key。
-- 云函数通过 `HUNYUAN_API_KEY` 环境变量调用混元。
-- AI 失败或未配置 Key 时，云函数使用本地关键词路由，保证主链可用。
+- 云函数通过 `LLM_API_KEY` 环境变量调用 OpenAI 兼容模型。
+- 新增记录先走本地关键词路由并立即返回，AI 只做后台复核。
+- AI 失败或未配置 Key 时，记录仍由本地规则完成归档，保证主链可用。
 - 数据按微信 openid 隔离，集合为 `entries`。
-
