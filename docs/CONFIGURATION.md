@@ -5,10 +5,11 @@
 文件：`mini_program/miniprogram/config/env.js`
 
 ```js
+useLocalMode: true,
 cloudEnvId: 'YOUR_CLOUD_ENV_ID'
 ```
 
-将占位符替换为微信云开发环境 ID。
+本地验证时保持 `useLocalMode: true`，小程序不会初始化云开发，也不会调用云函数。需要验证云端时，将 `useLocalMode` 改为 `false`，并把占位符替换为微信云开发环境 ID。
 
 ## 云函数环境变量
 

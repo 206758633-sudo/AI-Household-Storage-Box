@@ -4,7 +4,7 @@ const localApi = require('./local-api');
 const CLOUD_TIMEOUT_MS = 2500;
 
 function isCloudConfigured() {
-  return ENV_CONFIG.cloudEnvId && ENV_CONFIG.cloudEnvId !== 'YOUR_CLOUD_ENV_ID';
+  return !ENV_CONFIG.useLocalMode && ENV_CONFIG.cloudEnvId && ENV_CONFIG.cloudEnvId !== 'YOUR_CLOUD_ENV_ID';
 }
 
 function runWithTimeout(promise) {
